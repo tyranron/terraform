@@ -107,6 +107,9 @@ constraints:
   changed. Set an attribute to an unknown value to indicate that its final
   result will be determined during `ApplyResourceChange`.
 
+* A null new state may only be returned if the proposed new state was also null,
+  indicating a destroy plan for that instance.
+
 `PlanResourceChange` is actually called twice for each resource type.
 It will be called first during the planning phase before Terraform prints out
 the diff to the user for confirmation. If the user accepts the plan, then
