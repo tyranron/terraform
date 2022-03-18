@@ -410,6 +410,41 @@ func (n *NodeAbstractResourceInstance) planDestroy(ctx EvalContext, currentState
 		return noop, nil
 	}
 
+	// When planning the destruction of a managed resource, we give the
+	// provider a chance to check if this destroy is expected to succeed. This
+	// allows provider to inform users when a destroy which cannot proceed
+	// during the plan, rather than failing partway through apply.
+	if n.Addr.Resource.Resource.Mode == addrs.ManagedResourceMode {
+		provider, providerSchema, err := getProvider(ctx, n.ResolvedProvider)
+		_ = providerSchema
+		if err != nil {
+			return nil, diags.Append(err)
+		}
+
+		unmarkedPriorVal, _ := currentState.Value.UnmarkDeep()
+		nullVal := cty.NullVal(unmarkedPriorVal.Type())
+
+		metaConfigVal, metaDiags := n.providerMetas(ctx)
+		diags = diags.Append(metaDiags)
+		if diags.HasErrors() {
+			return nil, diags
+		}
+		// Send the destroy plan to the provider to verify it is valid.
+		resp := provider.PlanResourceChange(providers.PlanResourceChangeRequest{
+			TypeName:   n.Addr.Resource.Resource.Type,
+			PriorState: unmarkedPriorVal,
+			// We are destroying, so send a null config and proposed new state
+			Config:           nullVal,
+			ProposedNewState: nullVal,
+			ProviderMeta:     metaConfigVal,
+		})
+
+		diags = diags.Append(resp.Diagnostics)
+		if diags.HasErrors() {
+			return nil, diags
+		}
+	}
+
 	// Plan is always the same for a destroy. We don't need the provider's
 	// help for this one.
 	plan := &plans.ResourceInstanceChange{

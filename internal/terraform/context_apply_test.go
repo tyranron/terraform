@@ -11041,6 +11041,11 @@ locals {
 	p := testProvider("test")
 
 	p.PlanResourceChangeFn = func(r providers.PlanResourceChangeRequest) (resp providers.PlanResourceChangeResponse) {
+		if r.ProposedNewState.IsNull() {
+			resp.PlannedState = r.ProposedNewState
+			return resp
+		}
+
 		n := r.ProposedNewState.AsValueMap()
 
 		if r.PriorState.IsNull() {
@@ -11453,7 +11458,12 @@ resource "test_resource" "a" {
 `})
 
 	p := testProvider("test")
-	p.PlanResourceChangeFn = func(req providers.PlanResourceChangeRequest) providers.PlanResourceChangeResponse {
+	p.PlanResourceChangeFn = func(req providers.PlanResourceChangeRequest) (resp providers.PlanResourceChangeResponse) {
+		if req.ProposedNewState.IsNull() {
+			resp.PlannedState = req.ProposedNewState
+			return resp
+		}
+
 		proposed := req.ProposedNewState.AsValueMap()
 		proposed["id"] = cty.UnknownVal(cty.String)
 		return providers.PlanResourceChangeResponse{
