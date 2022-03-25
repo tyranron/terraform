@@ -242,6 +242,12 @@ func (p *Provider) UpgradeResourceState(req providers.UpgradeResourceStateReques
 // resource, and returns the planned final state.
 func (p *Provider) PlanResourceChange(req providers.PlanResourceChangeRequest) providers.PlanResourceChangeResponse {
 	log.Print("[TRACE] moduletest.Provider: PlanResourceChange")
+	if req.ProposedNewState.IsNull() {
+		return providers.PlanResourceChangeResponse{
+			PlannedState:   req.ProposedNewState,
+			PlannedPrivate: req.PriorPrivate,
+		}
+	}
 
 	var res providers.PlanResourceChangeResponse
 	if req.TypeName != "test_assertions" { // we only have one resource type

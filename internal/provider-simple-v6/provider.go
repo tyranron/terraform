@@ -85,6 +85,11 @@ func (s simple) ReadResource(req providers.ReadResourceRequest) (resp providers.
 }
 
 func (s simple) PlanResourceChange(req providers.PlanResourceChangeRequest) (resp providers.PlanResourceChangeResponse) {
+	if req.ProposedNewState.IsNull() {
+		resp.PlannedState = req.ProposedNewState
+		return resp
+	}
+
 	m := req.ProposedNewState.AsValueMap()
 	_, ok := m["id"]
 	if !ok {
