@@ -156,7 +156,7 @@ func TestProviderIsDefault(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		got := test.Input.IsDefault()
+		got := IsDefault(test.Input)
 		if got != test.Want {
 			t.Errorf("wrong result for %s\n", test.Input.String())
 		}

@@ -260,7 +260,7 @@ func validateProviderConfigs(parentCall *ModuleCall, cfg *Config, noProviderConf
 		if !(localName || configAlias || emptyConfig) {
 
 			// we still allow default configs, so switch to a warning if the incoming provider is a default
-			if providerAddr.Provider.IsDefault() {
+			if addrs.IsDefault(providerAddr.Provider) {
 				diags = append(diags, &hcl.Diagnostic{
 					Severity: hcl.DiagWarning,
 					Summary:  "Reference to undefined provider",
